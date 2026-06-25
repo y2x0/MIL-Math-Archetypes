@@ -99,7 +99,7 @@ A global readout (e.g., mean pooling or ABMIL attention) produces the
 slide-level prediction:
 
 ```math
-\hat{Y} = \operatorname{Softmax}(\operatorname{Readout}(G)).
+\hat{Y} = \mathrm{Softmax}(\mathrm{Readout}(G)).
 ```
 
 Cross-entropy loss over $M$ slides and $C$ classes:

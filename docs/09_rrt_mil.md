@@ -29,11 +29,11 @@ existing aggregator.
 Two sequential blocks with residual connections:
 
 ```math
-\hat{Z} = \operatorname{R-MSA}(\operatorname{LN}(H)) + H,
+\hat{Z} = \mathrm{R\text{-}MSA}(\mathrm{LN}(H)) + H,
 ```
 
 ```math
-Z = \operatorname{CR-MSA}(\operatorname{LN}(\hat{Z})) + \hat{Z}.
+Z = \mathrm{CR\text{-}MSA}(\mathrm{LN}(\hat{Z})) + \hat{Z}.
 ```
 
 ## Regional Multi-head Self-Attention (R-MSA)
@@ -66,15 +66,15 @@ information via a 1-D convolution over the score vector before softmax:
 ```math
 \alpha_{ij}^l
 =
-\operatorname{SoftMax}_j\!\left(
-e_{ij}^l + \operatorname{Conv}_{1\text{-}D}(e_{ij}^l)
+\mathrm{SoftMax}_j\!\left(
+e_{ij}^l + \mathrm{Conv}_{1\text{-}D}(e_{ij}^l)
 \right).
 ```
 
 Attended output for instance $i$ in window $l$:
 
 ```math
-\operatorname{R-SA}^l_i
+\mathrm{R\text{-}SA}^l_i
 =
 \sum_{j=1}^{M^2}
 \alpha_{ij}^l\,(H_j^l W^V).
@@ -89,7 +89,7 @@ Each window is compressed to $K$ representative tokens via learned pooling:
 ```math
 W_a^l
 =
-\operatorname{SoftMax}_{m=1}^{M^2}\!\left(\hat{Z}_m^l \,\Phi\right)
+\mathrm{SoftMax}_{m=1}^{M^2}\!\left(\hat{Z}_m^l \,\Phi\right)
 \in \mathbb{R}^{M^2 \times K},
 \qquad
 R^l = (W_a^l)^\top \hat{Z}^l \in \mathbb{R}^{K \times D},
@@ -107,7 +107,7 @@ Global context is distributed back to each instance:
 ```math
 W_d^l
 =
-\operatorname{MinMax}_{m=1}^{M^2}\!\left(\hat{Z}_m^l \,\Phi\right)
+\mathrm{MinMax}_{m=1}^{M^2}\!\left(\hat{Z}_m^l \,\Phi\right)
 \in \mathbb{R}^{M^2 \times K},
 \qquad
 Z^l = (W_d^l)\,\hat{R}^l\,\hat{W}_d^l,
