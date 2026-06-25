@@ -33,3 +33,26 @@ Primary papers that motivate the archetypes.
 
 - Petar Velickovic et al. "Graph Attention Networks." ICLR 2018.
   <https://arxiv.org/abs/1710.10903>
+
+## Pseudo-Bag and Hierarchical MIL
+
+- Hongrun Zhang et al. "DTFD-MIL: Double-Tier Feature Distillation Multiple
+  Instance Learning for Histopathology Whole Slide Image Classification."
+  CVPR 2022. <https://arxiv.org/abs/2203.12081>
+
+## Re-Embedding and Regional Attention
+
+- Tianyi Tang et al. "Feature Re-Embedding: Towards Foundation Model-Level
+  Performance in Computational Pathology." CVPR 2024.
+  <https://arxiv.org/abs/2402.17228>
+
+## Dynamic Graph MIL
+
+- Yanhua Li et al. "Dynamic Graph Representation with Knowledge-aware
+  Attention for Histopathology Whole Slide Image Analysis." CVPR 2024.
+  <https://arxiv.org/abs/2403.07719>
+
+## Attention Stabilization
+
+- "ASMIL: Attention-Stabilized Multiple Instance Learning for Whole Slide
+  Imaging." 2026. <https://arxiv.org/abs/2603.06658>
