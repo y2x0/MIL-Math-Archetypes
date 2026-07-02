@@ -30,14 +30,48 @@ A^\ell
 \mathrm{softmax}
 \left(
 \frac{Q^\ell(K^\ell)^\top}{\sqrt{d_k}}
-\right).
+\right),
 ```
 
-The token update is:
+where the softmax is applied row-wise, so $A^\ell\in\mathbb{R}^{(n+1)\times(n+1)}$
+with each row a probability distribution over tokens: $A^\ell_{ij}\ge0$,
+$\sum_j A^\ell_{ij}=1$. Row $i$ is the set of weights token $i$ places on all
+tokens when forming its update.
+
+The scaling by $\sqrt{d_k}$ is not cosmetic. If the entries of $Q,K$ are roughly
+independent with unit variance, then $\langle q_i,k_j\rangle$ has variance $d_k$,
+so without scaling the logits grow with dimension and softmax saturates into a
+near one-hot map with vanishing gradient. Dividing by $\sqrt{d_k}$ normalizes the
+logit variance back to $O(1)$ and keeps attention trainable:
 
 ```math
-Y^\ell=A^\ell V^\ell.
+\mathrm{Var}\big(\langle q_i,k_j\rangle\big)=d_k
+\ \Longrightarrow\
+\mathrm{Var}\!\left(\frac{\langle q_i,k_j\rangle}{\sqrt{d_k}}\right)=1.
 ```
+
+The token update is a weighted sum of value vectors:
+
+```math
+Y^\ell=A^\ell V^\ell,
+\qquad
+\widetilde h_i=\sum_{j}A^\ell_{ij}\,(V^\ell)_j.
+```
+
+### Multi-Head Attention
+
+A single attention map can only express one relation. Multi-head attention runs
+$H$ maps in parallel on projected subspaces of width $d_k=d/H$ and concatenates:
+
+```math
+\mathrm{head}_r=\mathrm{softmax}\!\left(\frac{Q_r K_r^\top}{\sqrt{d_k}}\right)V_r,
+\qquad
+\mathrm{MSA}=\big[\mathrm{head}_1\Vert\cdots\Vert\mathrm{head}_H\big]W_O.
+```
+
+Different heads can specialize to different patch-patch relations (e.g. one
+tracks stroma-tumor adjacency, another tracks similar morphology) at the same
+$O(n^2)$ cost, since the per-head width shrinks as $H$ grows.
 
 With residual and normalization:
 
@@ -131,7 +165,26 @@ h_i
 \sum_j A_{ij}Vh_j.
 ```
 
-The fundamental object is the learned \(n\times n\) interaction matrix.
+The fundamental object is the learned \(n\times n\) interaction matrix. Mean
+pooling and ABMIL both produce a bag vector that is a convex combination of the
+*inputs*; a transformer instead rewrites each token as a convex combination of
+all others before any readout, so the surviving statistic is the set of pairwise
+correlations $\{\langle q_i,k_j\rangle\}$ rather than a single moment.
+
+### Why Permutation Invariance Is Preserved (or Broken)
+
+Without positional encodings, self-attention is permutation *equivariant*:
+permuting the input tokens by $\pi$ permutes the outputs the same way,
+
+```math
+\mathrm{MSA}(\Pi X)=\Pi\,\mathrm{MSA}(X),
+```
+
+for any permutation matrix $\Pi$, because $A$ is built from content-only inner
+products. A permutation-invariant readout (a shared class token, or attention
+pooling) then makes the whole bag prediction permutation invariant — matching
+the unordered nature of a slide. Adding positional encodings or the grid
+convolution above deliberately breaks this, trading invariance for geometry.
 
 ## Inductive Bias
 
@@ -143,18 +196,24 @@ The fundamental object is the learned \(n\times n\) interaction matrix.
 
 ## Failure Mode
 
-The model can overfit because it learns many pairwise interactions:
+The model can overfit because it learns many pairwise interactions. For a bag of
+$n$ patches the attention matrix has
 
 ```math
 O(n^2)
 ```
 
-for full attention. Approximations reduce compute but introduce approximation
-error:
+entries — with $n$ in the thousands for a whole slide, that is both a memory
+cost ($n^2$ scores per head per layer) and a statistical cost: the number of
+free pairwise interactions vastly exceeds the number of labeled bags,
 
 ```math
-A\approx\widehat A.
+n^2\ \text{interactions}\ \gg\ \#\{\text{labeled slides}\},
 ```
 
-If token order or grid restoration is false, the positional assumptions become
-false too.
+so the model can fit spurious patch-patch relations. This is why Transformer MIL
+in pathology almost always uses a low-rank or landmark approximation
+$A\approx\widehat A$ (the Nyström form above), which reduces cost to $O(nm)$ for
+$m\ll n$ landmarks but introduces approximation error when $A$ is not actually
+low rank. And if token order or grid restoration is false, the positional
+assumptions become false too.

@@ -86,6 +86,24 @@ where:
 \widetilde D_{ii}=\sum_j\widetilde A_{ij}.
 ```
 
+Each piece has a purpose. Adding $I$ (self-loops) keeps a node's own features in
+its update instead of replacing them entirely with neighbors'. The symmetric
+normalization $\widetilde D^{-1/2}\widetilde A\widetilde D^{-1/2}$ rescales each
+edge by the degrees of both endpoints,
+
+```math
+\big(\widetilde D^{-1/2}\widetilde A\widetilde D^{-1/2}\big)_{ij}
+=
+\frac{\widetilde A_{ij}}{\sqrt{\widetilde D_{ii}}\,\sqrt{\widetilde D_{jj}}},
+```
+
+which prevents high-degree nodes from dominating the message and keeps the
+propagation operator's spectrum bounded (its eigenvalues lie in $[-1,1]$),
+so repeated application does not blow up. This is the first-order approximation
+of a spectral graph convolution — a localized low-pass filter on the graph — but
+in practice it is read as: average your neighbors' transformed features, degree-
+normalized, then apply a pointwise nonlinearity.
+
 ## Graph Attention
 
 Graph attention computes feature-dependent edge scores:
@@ -196,5 +214,21 @@ Stacking too many graph layers can oversmooth:
 h_i^{(L)}\approx h_j^{(L)}
 ```
 
-for many nodes \(i,j\). Stacking too few layers causes oversquashing: many
-distant signals must pass through small local bottlenecks.
+for many nodes \(i,j\). The mechanism is spectral. Let
+$P=\widetilde D^{-1/2}\widetilde A\widetilde D^{-1/2}$ be the propagation
+operator. Ignoring the nonlinearity, $L$ layers apply $P^{L}$, and because $P$'s
+eigenvalues satisfy $|\lambda_k|\le1$ with a single dominant eigenvalue
+$\lambda_1=1$, all other modes decay geometrically:
+
+```math
+P^{L}H^{(0)}\ \xrightarrow[L\to\infty]{}\ \text{(projection onto the }\lambda_1\text{ eigenspace)},
+\qquad
+|\lambda_2|^{L}\to0.
+```
+
+Node features collapse toward a degree-weighted constant and lose the
+discriminative variation the readout needs. The opposite failure is
+oversquashing: information from an exponentially growing receptive field must be
+compressed into a fixed-width node vector, so distant signals are lost through
+local bottlenecks. Depth must therefore be large enough to reach relevant
+context but small enough to avoid both effects.

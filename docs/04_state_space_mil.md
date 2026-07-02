@@ -13,23 +13,50 @@ A continuous state-space model is:
 y(t)=Cs(t).
 ```
 
-After discretization:
+Here $s(t)\in\mathbb{R}^{N}$ is a latent memory of state dimension $N$,
+$x(t)\in\mathbb{R}$ is one channel of the input, and $A\in\mathbb{R}^{N\times N}$,
+$B\in\mathbb{R}^{N\times1}$, $C\in\mathbb{R}^{1\times N}$. A slide is fed as a
+sequence of patches, one time step per patch.
+
+To run this on discrete tokens with step size $\Delta$, we integrate the ODE
+over one interval assuming $x$ is held constant (zero-order hold), which yields
+the exact discrete update:
 
 ```math
 \bar A=\exp(\Delta A),
 ```
 
 ```math
-\bar B=(\Delta A)^{-1}(\exp(\Delta A)-I)\Delta B.
+\bar B=(\Delta A)^{-1}(\exp(\Delta A)-I)\,\Delta B.
 ```
 
-The recurrence is:
+The matrix exponential is what makes this stable: eigenvalues of $A$ with
+negative real part become eigenvalues of $\bar A$ inside the unit disk, so the
+memory decays rather than explodes. The recurrence is then:
 
 ```math
 s_t=\bar A s_{t-1}+\bar B x_t,
 \qquad
 y_t=Cs_t.
 ```
+
+### Recurrent and Convolutional Views
+
+Unrolling the recurrence from $s_0=0$ shows the output is a convolution of the
+input with a fixed kernel:
+
+```math
+y_t=\sum_{j=0}^{t}\underbrace{C\bar A^{\,j}\bar B}_{\bar K_j}\;x_{t-j}
+=(\bar K * x)_t,
+\qquad
+\bar K=\big(C\bar B,\ C\bar A\bar B,\ C\bar A^2\bar B,\ \ldots\big).
+```
+
+The two views trade off differently: the recurrence is $O(n)$ time and $O(1)$
+memory per step (good for inference), while the convolution can be evaluated in
+parallel across all positions during training. This equivalence — linear-time
+recurrence *and* parallel training — is the whole appeal over an $O(n^2)$
+transformer.
 
 ## Selective State-Space Core
 
@@ -59,7 +86,14 @@ s_t=\bar A_t s_{t-1}+\bar B_t x_t,
 y_t=C_t s_t.
 ```
 
-This gives content-dependent remembering and forgetting.
+This gives content-dependent remembering and forgetting. Making $\Delta_t,B_t,C_t$
+functions of the token is the "selective" step: a large $\Delta_t$ (long
+effective step) lets a salient patch write strongly into the state and resets
+the influence of older tokens, while a small $\Delta_t$ keeps the state
+unchanged. In effect $\Delta_t$ is a learned, input-dependent gate over memory —
+the same role a forget gate plays in an LSTM, but derived from the discretized
+ODE. The price is that the kernel $\bar K$ is no longer fixed, so the pure
+convolution view is replaced by a parallel associative scan.
 
 ## Sequence-Reordered MIL
 
@@ -155,7 +189,12 @@ s_t.
 ```
 
 The complexity is linear in sequence length, but information must fit through
-the state dimension.
+the state dimension. The state $s_t\in\mathbb{R}^{N}$ is a fixed-size summary of
+the entire prefix $(h_1,\ldots,h_t)$, so it is an information bottleneck: at most
+$N$ real numbers separate the past from the future. A transformer keeps all $t$
+tokens addressable ($O(t)$ memory, $O(t^2)$ compute); a state-space model keeps
+$O(N)$ memory and $O(t)$ compute but can only preserve what fits in $N$
+dimensions. Choosing $N$ trades capacity against cost.
 
 ## Inductive Bias
 
