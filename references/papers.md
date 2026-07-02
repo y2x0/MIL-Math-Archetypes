@@ -7,6 +7,15 @@ Primary papers that motivate the archetypes.
 - Maximilian Ilse, Jakub Tomczak, and Max Welling. "Attention-based Deep
   Multiple Instance Learning." ICML 2018. <https://arxiv.org/abs/1802.04712>
 
+- Ming Y. Lu et al. "Data-efficient and weakly supervised computational
+  pathology on whole-slide images (CLAM)." Nature Biomedical Engineering 2021.
+  <https://arxiv.org/abs/2004.09666>
+
+- Bin Li, Yin Li, and Kevin W. Eliceiri. "Dual-stream Multiple Instance
+  Learning Network for Whole Slide Image Classification with Self-supervised
+  Contrastive Learning (DSMIL)." CVPR 2021.
+  <https://arxiv.org/abs/2011.08939>
+
 ## Transformer MIL
 
 - Zhuchen Shao et al. "TransMIL: Transformer based Correlated Multiple Instance

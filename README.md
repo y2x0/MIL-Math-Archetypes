@@ -33,6 +33,21 @@ questions:
 7. [Unifying view](docs/06_unifying_view.md)
 8. [Design axes](docs/07_design_axes.md)
 
+### Extended Method Notes
+
+- [DTFD-MIL](docs/08_dtfd_mil.md)
+- [RRT-MIL](docs/09_rrt_mil.md)
+- [WiKG](docs/10_wikg.md)
+- [ASMIL](docs/11_asmil.md)
+- [CLAM](docs/12_clam.md)
+- [DSMIL](docs/13_dsmil.md)
+
+### Cross-Cutting
+
+- [Master slot table](docs/14_slot_table.md): every method placed in the
+  `C / R / G / S` decomposition.
+- [Loss math](docs/losses/README.md): bag-level classification objectives.
+
 ## One-Line Taxonomy
 
 Let a slide be a bag of patch embeddings:
